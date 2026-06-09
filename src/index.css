@@ -1,0 +1,266 @@
+/* ── Reset & base ── */
+*, *::before, *::after { box-sizing: border-box; }
+
+:root {
+  --sky: #e0f7ff;
+  --sky-dark: #b3e5fc;
+  --text: #1a2d3d;
+  --accent: #ff6b6b;
+  --radius: 12px;
+  font-family: 'Segoe UI', system-ui, sans-serif;
+  font-size: 16px;
+}
+
+body {
+  margin: 0;
+  background: linear-gradient(160deg, var(--sky) 0%, var(--sky-dark) 100%);
+  min-height: 100vh;
+  color: var(--text);
+}
+
+button { cursor: pointer; font-family: inherit; }
+
+/* ── Homepage ── */
+.home {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  padding: 2.5rem 1rem;
+  min-height: 100vh;
+}
+
+.home-header {
+  text-align: center;
+  margin-bottom: 2.5rem;
+}
+
+.home-title {
+  font-size: 2.8rem;
+  font-weight: 800;
+  letter-spacing: -1px;
+  color: var(--text);
+  margin: 0 0 0.25rem;
+}
+
+.home-subtitle {
+  font-size: 1.1rem;
+  color: #4a7a9b;
+  margin: 0;
+}
+
+.home-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(220px, 1fr));
+  gap: 1.25rem;
+  width: 100%;
+  max-width: 960px;
+}
+
+/* ── GameCard ── */
+.game-card {
+  background: #fff;
+  border: 2px solid transparent;
+  border-radius: var(--radius);
+  padding: 2rem 1.5rem;
+  text-align: center;
+  box-shadow: 0 4px 16px rgba(0,0,0,0.08);
+  transition: transform 0.15s, box-shadow 0.15s, border-color 0.15s;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 0.5rem;
+}
+.game-card:hover {
+  transform: translateY(-4px);
+  box-shadow: 0 8px 24px rgba(0,0,0,0.13);
+  border-color: var(--accent);
+}
+.game-card-emoji { font-size: 3rem; }
+.game-card-title { font-size: 1.15rem; font-weight: 700; margin: 0; }
+.game-card-desc  { font-size: 0.85rem; color: #5a7a8a; margin: 0; }
+
+/* ── Game page ── */
+.game-page {
+  display: flex;
+  flex-direction: column;
+  min-height: 100vh;
+  padding-bottom: 2rem;
+}
+
+.game-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 1rem 1.5rem;
+  background: rgba(255,255,255,0.7);
+  backdrop-filter: blur(8px);
+  border-bottom: 1px solid rgba(0,0,0,0.08);
+}
+
+.game-page-title {
+  font-size: 1.3rem;
+  font-weight: 700;
+  margin: 0;
+}
+
+.back-btn {
+  background: none;
+  border: none;
+  font-size: 0.95rem;
+  color: #4a7a9b;
+  padding: 0.4rem 0.8rem;
+  border-radius: 6px;
+}
+.back-btn:hover { background: rgba(0,0,0,0.06); }
+
+.score-badge {
+  font-weight: 700;
+  font-size: 1rem;
+  background: var(--accent);
+  color: #fff;
+  padding: 0.3rem 0.8rem;
+  border-radius: 999px;
+}
+
+/* ── Prompt area ── */
+.prompt-area {
+  text-align: center;
+  padding: 1.5rem 1rem 1rem;
+}
+
+.prompt-text {
+  font-size: 1.3rem;
+  margin: 0 0 0.75rem;
+}
+
+.prompt-target {
+  font-size: 1.5rem;
+  color: var(--accent);
+}
+
+.speak-btn {
+  background: #fff;
+  border: 2px solid #cde;
+  border-radius: 999px;
+  padding: 0.4rem 1.2rem;
+  font-size: 0.95rem;
+  color: #4a7a9b;
+  transition: background 0.15s;
+}
+.speak-btn:hover { background: #eef6ff; }
+
+.feedback-msg {
+  margin: 0.6rem 0 0;
+  font-size: 1rem;
+  font-weight: 600;
+  color: var(--accent);
+  animation: fadeIn 0.2s ease;
+}
+
+/* ── Balloon field ── */
+.balloon-field {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: center;
+  align-items: flex-end;
+  gap: 2rem 3rem;
+  padding: 2rem 1rem;
+  flex: 1;
+}
+
+/* ── Balloon wrapper (holds balloon + string, animates float) ── */
+.balloon-wrapper {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  animation: float 2.8s ease-in-out infinite alternate;
+}
+.balloon-wrapper--correct { animation: pop 0.5s ease forwards; }
+.balloon-wrapper--wrong   { animation: shake 0.6s ease; }
+
+/* ── Balloon button ── */
+.balloon {
+  width: 90px;
+  height: 110px;
+  border-radius: 50% 50% 50% 50% / 55% 55% 45% 45%;
+  background: var(--balloon-color, #ff6b6b);
+  border: none;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 4px;
+  box-shadow: inset -8px -8px 16px rgba(0,0,0,0.15), 0 6px 20px rgba(0,0,0,0.15);
+  position: relative;
+  transition: transform 0.1s;
+}
+.balloon:hover:not(:disabled) { transform: scale(1.08); }
+.balloon:disabled { cursor: default; }
+
+/* Knot at the bottom of the balloon */
+.balloon::after {
+  content: '';
+  position: absolute;
+  bottom: -8px;
+  left: 50%;
+  transform: translateX(-50%);
+  width: 10px;
+  height: 10px;
+  border-radius: 50%;
+  background: var(--balloon-color, #ff6b6b);
+  filter: brightness(0.75);
+}
+
+.balloon-letter {
+  font-size: 2rem;
+  line-height: 1;
+  color: rgba(0,0,0,0.7);
+  font-weight: 700;
+}
+.balloon-roman {
+  font-size: 0.75rem;
+  color: rgba(0,0,0,0.55);
+  font-weight: 600;
+  letter-spacing: 0.03em;
+}
+
+/* String */
+.balloon-string {
+  width: 2px;
+  height: 48px;
+  background: linear-gradient(to bottom, rgba(0,0,0,0.3), transparent);
+  margin-top: 8px;
+}
+
+/* ── Keyframes ── */
+@keyframes float {
+  from { transform: translateY(0px); }
+  to   { transform: translateY(-18px); }
+}
+
+@keyframes pop {
+  0%   { transform: scale(1); opacity: 1; }
+  40%  { transform: scale(1.35); opacity: 0.9; }
+  100% { transform: scale(0); opacity: 0; }
+}
+
+@keyframes shake {
+  0%, 100% { transform: translateX(0); }
+  20%       { transform: translateX(-8px); }
+  40%       { transform: translateX(8px); }
+  60%       { transform: translateX(-6px); }
+  80%       { transform: translateX(6px); }
+}
+
+@keyframes fadeIn {
+  from { opacity: 0; transform: translateY(-4px); }
+  to   { opacity: 1; transform: translateY(0); }
+}
+
+/* ── Responsive ── */
+@media (max-width: 480px) {
+  .home-title { font-size: 2rem; }
+  .balloon { width: 76px; height: 92px; }
+  .balloon-letter { font-size: 1.6rem; }
+  .balloon-field { gap: 1.5rem 2rem; }
+}
