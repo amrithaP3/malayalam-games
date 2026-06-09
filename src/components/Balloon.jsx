@@ -1,8 +1,12 @@
-export default function Balloon({ letter, romanization, color, status, animDelay, onClick }) {
+export default function Balloon({ letter, romanization, color, status, left, duration, delay, onClick }) {
   return (
     <div
-      className={`balloon-wrapper balloon-wrapper--${status}`}
-      style={{ animationDelay: animDelay }}
+      className={`balloon-wrapper${status === 'correct' ? ' balloon-wrapper--correct' : ''}`}
+      style={{
+        '--rise-dur':   `${duration}s`,
+        '--rise-delay': `${delay}s`,
+        left: `${left}%`,
+      }}
     >
       <button
         className={`balloon balloon--${status}`}
@@ -12,7 +16,6 @@ export default function Balloon({ letter, romanization, color, status, animDelay
         aria-label={`Balloon: ${romanization}`}
       >
         <span className="balloon-letter">{letter}</span>
-        <span className="balloon-roman">{romanization}</span>
       </button>
       <div className="balloon-string" />
     </div>
