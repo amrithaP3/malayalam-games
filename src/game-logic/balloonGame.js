@@ -24,6 +24,35 @@ export function playLetterAudio(letter) {
   }
 }
 
+export function stopAudio() {
+  if (_currentAudio) {
+    _currentAudio.pause()
+    _currentAudio.currentTime = 0
+    _currentAudio = null
+  }
+}
+
+export function playSuccessSound() {
+  try {
+    const AudioCtx = window.AudioContext || /** @type {typeof AudioContext} */ (window['webkitAudioContext'])
+    const ctx = new AudioCtx()
+    const notes = [523.25, 659.25, 783.99, 1046.5] // C5 E5 G5 C6
+    notes.forEach((freq, i) => {
+      const osc = ctx.createOscillator()
+      const gain = ctx.createGain()
+      osc.connect(gain)
+      gain.connect(ctx.destination)
+      osc.frequency.value = freq
+      osc.type = 'sine'
+      const t = ctx.currentTime + i * 0.09
+      gain.gain.setValueAtTime(0.28, t)
+      gain.gain.exponentialRampToValueAtTime(0.001, t + 0.22)
+      osc.start(t)
+      osc.stop(t + 0.25)
+    })
+  } catch (_) {}
+}
+
 const COLORS = [
   '#FF6B6B', '#4ECDC4', '#45B7D1', '#9B59B6', '#F39C12',
   '#2ECC71', '#E91E63', '#FF9800', '#00BCD4', '#8BC34A',
@@ -96,4 +125,11 @@ export function pickTarget(letters) {
 
 export function checkAnswer(balloonId, targetId) {
   return balloonId === targetId
+}
+
+export function getStars(score) {
+  if (score >= 10) return 3;
+  if (score >= 5)  return 2;
+  if (score >= 1)  return 1;
+  return 0;
 }

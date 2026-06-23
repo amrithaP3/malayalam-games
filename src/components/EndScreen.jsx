@@ -1,5 +1,6 @@
 import { useState, useEffect } from 'react';
 import CertificateModal from './CertificateModal';
+import { getStars } from '../game-logic/balloonGame';
 
 const CONFETTI = [
   { e: '🎈', left:  '7%', delay: '0s',    dur: '3.0s' },
@@ -11,17 +12,12 @@ const CONFETTI = [
   { e: '🎉', left: '92%', delay: '1.0s',  dur: '3.1s' },
 ];
 
-function getStars(score) {
-  if (score >= 10) return 3;
-  if (score >= 5)  return 2;
-  if (score >= 1)  return 1;
-  return 0;
-}
 
 export default function EndScreen({ score, onPlayAgain, onExit }) {
   const [displayed,  setDisplayed]  = useState(0);
   const [showCert,   setShowCert]   = useState(false);
 
+  // animated score counter
   useEffect(() => {
     if (displayed >= score) return;
     const t = setTimeout(() => setDisplayed(n => n + 1), 80);

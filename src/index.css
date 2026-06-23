@@ -176,38 +176,38 @@ label[for] {
   display: flex;
   align-items: center;
   justify-content: space-between;
-  padding: 0.65rem 1.25rem;
+  padding: 0.9rem 1.5rem;
   background: rgba(255,255,255,0.75);
   backdrop-filter: blur(8px);
   border-bottom: 1px solid rgba(0,0,0,0.08);
   flex-shrink: 0;
 }
 
-.game-page-title { font-size: 1.2rem; font-weight: 700; margin: 0; }
+.game-page-title { font-size: 1.4rem; font-weight: 700; margin: 0; }
 
 .game-stats {
   display: flex;
   align-items: center;
-  gap: 0.5rem;
+  gap: 0.65rem;
 }
 
 .score-badge {
   font-weight: 700;
-  font-size: 0.95rem;
+  font-size: 1.15rem;
   background: #27ae60;
   color: #fff;
-  padding: 0.3rem 0.75rem;
+  padding: 0.45rem 1rem;
   border-radius: 999px;
 }
 
 .timer-badge {
   font-weight: 700;
-  font-size: 0.95rem;
+  font-size: 1.15rem;
   background: var(--timer-color, #27ae60);
   color: #fff;
-  padding: 0.3rem 0.75rem;
+  padding: 0.45rem 1rem;
   border-radius: 999px;
-  min-width: 62px;
+  min-width: 78px;
   text-align: center;
   transition: background 0.4s;
 }
@@ -216,9 +216,9 @@ label[for] {
 .pause-btn {
   background: rgba(0,0,0,0.08);
   border: none;
-  border-radius: 8px;
-  padding: 0.3rem 0.6rem;
-  font-size: 1.1rem;
+  border-radius: 10px;
+  padding: 0.4rem 0.75rem;
+  font-size: 1.4rem;
   line-height: 1;
   transition: background 0.15s;
   cursor: pointer;
@@ -227,24 +227,27 @@ label[for] {
 
 /* ── Prompt area ── */
 .prompt-area {
-  text-align: center;
-  padding: 0.6rem 1rem 0.5rem;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 0.7rem;
+  padding: 1rem 1rem 0.9rem;
   flex-shrink: 0;
   background: rgba(255,255,255,0.45);
 }
 
 .prompt-text {
-  font-size: 1.05rem;
-  margin: 0 0 0.4rem;
+  font-size: 1.15rem;
+  margin: 0;
   font-weight: 600;
 }
 
 .speak-btn {
   background: #fff;
-  border: 2px solid #cde;
+  border: 2.5px solid #cde;
   border-radius: 999px;
-  padding: 0.35rem 1.1rem;
-  font-size: 0.9rem;
+  padding: 0.55rem 1.6rem;
+  font-size: 1.05rem;
   color: #4a7a9b;
   transition: background 0.15s, transform 0.1s;
   cursor: pointer;
@@ -280,50 +283,42 @@ label[for] {
 .cloud {
   position: absolute;
   top: var(--cloud-top);
-  height: 38px;
-  background: rgba(255,255,255,0.8);
+  background: rgba(255,255,255,0.82);
   border-radius: 50px;
   pointer-events: none;
   animation: cloud-drift var(--cloud-dur) linear var(--cloud-delay) infinite;
+  filter: blur(2.5px);
 }
-.cloud::before,
-.cloud::after {
-  content: '';
+
+.cloud-puff {
   position: absolute;
-  background: rgba(255,255,255,0.8);
+  background: rgba(255,255,255,0.92);
   border-radius: 50%;
 }
-.cloud::before {
-  width: 55%;
-  height: 60px;
-  top: -22px;
-  left: 15%;
-}
-.cloud::after {
-  width: 38%;
-  height: 48px;
-  top: -16px;
-  left: 48%;
-}
+.cloud-puff--a { width: 58%; height: 190%; top: -75%; left:  5%; }
+.cloud-puff--b { width: 48%; height: 160%; top: -60%; left: 35%; }
+.cloud-puff--c { width: 36%; height: 130%; top: -45%; left: 60%; }
 
 /* ── Balloon wrapper — rises from bottom ── */
 .balloon-wrapper {
   position: absolute;
-  bottom: -210px;
+  bottom: -20px;
   display: flex;
   flex-direction: column;
   align-items: center;
   animation: rise var(--rise-dur) linear var(--rise-delay) infinite;
 }
 .balloon-wrapper--correct {
-  animation: pop-balloon 0.5s ease forwards;
   pointer-events: none;
+}
+.balloon-wrapper--correct .balloon {
+  animation: pop-balloon 0.5s ease forwards;
 }
 
 /* ── Balloon button ── */
 .balloon {
-  width: 130px;
-  height: 158px;
+  width: var(--balloon-w, 130px);
+  height: calc(var(--balloon-w, 130px) * 1.215);
   border-radius: 50% 50% 50% 50% / 55% 55% 45% 45%;
   background: var(--balloon-color, #ff6b6b);
   border: none;
@@ -347,17 +342,18 @@ label[for] {
 .balloon::after {
   content: '';
   position: absolute;
-  bottom: -9px;
+  bottom: calc(var(--balloon-w, 130px) * -0.069);
   left: 50%;
   transform: translateX(-50%);
-  width: 12px; height: 12px;
+  width:  calc(var(--balloon-w, 130px) * 0.092);
+  height: calc(var(--balloon-w, 130px) * 0.092);
   border-radius: 50%;
   background: var(--balloon-color, #ff6b6b);
   filter: brightness(0.7);
 }
 
 .balloon-letter {
-  font-size: 3.2rem;
+  font-size: calc(var(--balloon-w, 130px) * 0.394);
   line-height: 1;
   color: rgba(0,0,0,0.68);
   font-weight: 700;
@@ -372,6 +368,32 @@ label[for] {
 
 /* Wrong click — shake the button, wrapper keeps rising */
 .balloon--wrong { animation: shake 0.65s ease; }
+
+/* Correct pop — confetti burst (position:fixed anchor, unaffected by parent transforms) */
+.burst-container {
+  position: fixed;
+  left: var(--bx);
+  top: var(--by);
+  pointer-events: none;
+  z-index: 300;
+}
+
+.burst-particle {
+  position: absolute;
+  width: 11px;
+  height: 11px;
+  border-radius: 50%;
+  background: var(--p-color, #ff6b6b);
+  top: 0;
+  left: 0;
+  pointer-events: none;
+  animation: burst 0.6s ease-out forwards;
+}
+
+@keyframes burst {
+  0%   { transform: translate(-50%, -50%) scale(1.2); opacity: 1; }
+  100% { transform: translate(calc(-50% + var(--px)), calc(-50% + var(--py))) scale(0); opacity: 0; }
+}
 
 /* ─────────────────────────────────────────
    Pause overlay
@@ -620,11 +642,11 @@ label[for] {
    Keyframes
 ───────────────────────────────────────── */
 @keyframes rise {
-  0%   { transform: translateY(0)              rotate(-2deg); }
-  25%  { transform: translateY(-26vh)          rotate(2.5deg); }
-  55%  { transform: translateY(-55vh)          rotate(-1.5deg); }
-  80%  { transform: translateY(-80vh)          rotate(2deg); }
-  100% { transform: translateY(calc(-100vh - 260px)) rotate(-1deg); }
+  0%   { transform: translateY(0)      rotate(-2deg);  }
+  25%  { transform: translateY(-24vh)  rotate(2.5deg); }
+  55%  { transform: translateY(-52vh)  rotate(-1.5deg);}
+  80%  { transform: translateY(-78vh)  rotate(2deg);   }
+  100% { transform: translateY(-100vh) rotate(-1deg);  }
 }
 
 @keyframes pop-balloon {
@@ -680,13 +702,35 @@ label[for] {
    Print styles — show only the certificate
 ───────────────────────────────────────── */
 @media print {
-  body > * { display: none !important; }
-  .modal-overlay { position: static !important; background: none !important; display: block !important; }
-  .modal-box { box-shadow: none !important; padding: 0 !important; max-width: 100% !important; }
-  .cert-name-row,
-  .cert-print-btn,
-  .modal-close-btn { display: none !important; }
-  .certificate { border-color: #d4af37 !important; display: block !important; }
+  body { visibility: hidden; }
+  .certificate {
+    visibility: visible;
+    position: fixed;
+    inset: 0;
+    border-width: 6px;
+    border-radius: 8px;
+    padding: 0.75rem;
+    -webkit-print-color-adjust: exact;
+    print-color-adjust: exact;
+  }
+  .certificate * { visibility: visible; }
+  .cert-inner {
+    height: 100%;
+    box-sizing: border-box;
+    justify-content: space-evenly;
+    border-width: 3px;
+    padding: 2rem 3rem;
+  }
+  .cert-heading       { font-size: 1.3rem; }
+  .cert-balloon-icon  { font-size: 4.5rem; }
+  .cert-game-title    { font-size: 2.6rem; }
+  .cert-game-subtitle { font-size: 1.2rem; }
+  .cert-rule          { width: 70%; height: 2px; }
+  .cert-presents-text { font-size: 1.4rem; }
+  .cert-recipient     { font-size: 2.4rem; min-width: 300px; }
+  .cert-big-score     { font-size: 6rem; }
+  .cert-stars-row     { font-size: 2.8rem; }
+  .cert-date          { font-size: 1.2rem; }
 }
 
 /* ─────────────────────────────────────────
@@ -696,8 +740,6 @@ label[for] {
   .home-title    { font-size: 2rem; }
   .intro-card    { padding: 2.2rem 2rem; }
   .intro-title   { font-size: 2rem; }
-  .balloon       { width: 100px; height: 122px; }
-  .balloon-letter { font-size: 2.5rem; }
   .end-card      { padding: 2rem 1.5rem; }
   .end-score     { font-size: 4rem; }
   .pause-card    { padding: 2rem 1.5rem; }
