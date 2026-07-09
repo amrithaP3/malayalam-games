@@ -9,9 +9,11 @@ npm run dev       # local dev server (HMR)
 npm run build     # production build → dist/
 npm run preview   # serve dist/ locally
 npm run lint      # ESLint
+npm test          # run Vitest suite once
+npm run test:watch # Vitest in watch mode
 ```
 
-There is no test suite.
+Tests use Vitest + `@testing-library/react` (jsdom environment, configured in `vite.config.js`). Coverage is concentrated in `src/game-logic/balloonGame.js` (pure logic, highest value) with a couple of component tests for `Balloon.jsx`/`EndScreen.jsx`. `BalloonGame.jsx` itself is stateful/timer-driven and intentionally untested — that's why the logic lives in the plain module in the first place.
 
 ## Architecture
 
@@ -27,6 +29,10 @@ React 18 + Vite SPA with React Router v6. Three routes:
 **All styles live in one file: `src/index.css`.** There are no CSS modules or component-scoped styles.
 
 **`UserContext`** (`src/context/UserContext.jsx`) is a stub — `user` is always `null`. It exists as the wiring point for future Supabase auth (`signIn`/`signOut` TODOs are there).
+
+### Balloon-only deployment variant
+
+`src/App.jsx` reads `import.meta.env.VITE_BALLOON_ONLY`. When it's `'true'`, `/` renders `BalloonGame` directly and `/games` is dropped, so the site is just the balloon game with no homepage/portal — useful for shipping the game before the rest of the site is ready. `/balloon` always works regardless of the flag. Set `VITE_BALLOON_ONLY=true` as a build-time env var on whichever Vercel/Netlify deployment target should be balloon-only; leave it unset elsewhere for full routing. No route code needs to change to switch between the two.
 
 ## Balloon Game Mechanics
 
