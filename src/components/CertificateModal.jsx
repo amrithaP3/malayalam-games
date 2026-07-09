@@ -33,7 +33,7 @@ export default function CertificateModal({ score, onClose }) {
           <div className="cert-inner">
             <p className="cert-heading">✦ CERTIFICATE OF ACHIEVEMENT ✦</p>
             <div className="cert-balloon-icon">🎈</div>
-            <p className="cert-game-title">malayalam-games</p>
+            <p className="cert-game-title">Learn Malayalam</p>
             <p className="cert-game-subtitle">Malayalam Letters · Balloon Pop</p>
             <div className="cert-rule" />
             <p className="cert-presents-text">This certifies that</p>
