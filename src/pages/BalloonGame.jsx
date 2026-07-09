@@ -3,7 +3,11 @@ import { useNavigate } from 'react-router-dom';
 import Balloon from '../components/Balloon';
 import GameIntro from '../components/GameIntro';
 import EndScreen from '../components/EndScreen';
-import { ALL_LETTERS, pickSubset, pickTarget, playLetterAudio, stopAudio, playSuccessSound, checkAnswer } from '../game-logic/balloonGame';
+import {
+  ALL_LETTERS, pickSubset, playLetterAudio, stopAudio,
+  playSuccessSound, checkAnswer,
+  initBalloons, replaceBalloon, pickVisibleTarget,
+} from '../game-logic/balloonGame';
 
 const GAME_DURATION = 60;
 const LETTER_COUNT  = 8;
@@ -19,47 +23,8 @@ const BURST = [
   { color: '#FF9800', angle: 315 },
 ];
 
-// utility function to get width of balloon based on letter count
 function getBalloonW(letterCount) {
   return Math.min(150, Math.floor(window.innerWidth * 0.78 / letterCount));
-}
-
-function createBalloon(letter, laneIndex, totalLanes, balloonW, minProgress = 0.3) {
-  const laneW = 82 / totalLanes;
-  const laneStart = 6 + laneIndex * laneW;
-  const balloonWPct = balloonW / window.innerWidth * 100;
-  const offset = Math.max(laneW - balloonWPct - 0.5, 0);
-  const duration = 8 + Math.random() * 7;
-  return {
-    uid:       Math.random().toString(36).slice(2),
-    ...letter,
-    laneIndex,
-    left:      laneStart + Math.random() * offset,
-    duration,
-    delay:     -(duration * (minProgress + Math.random() * (1 - minProgress))),
-    startedAt: Date.now(),
-  };
-}
-
-function initBalloons(letters, balloonW) {
-  return letters.map((v, i) => createBalloon(v, i, letters.length, balloonW));
-}
-
-function pickVisibleTarget(letters, balloons) {
-  const now = Date.now();
-  const getProgress = b => {
-    const elapsed = (now - b.startedAt) + Math.abs(b.delay) * 1000;
-    return (elapsed % (b.duration * 1000)) / (b.duration * 1000);
-  };
-  const safe = balloons.filter(b => {
-    const p = getProgress(b);
-    return p > 0.08 && p < 0.60;
-  });
-  const pool = safe.length > 0
-    ? safe
-    : [balloons.slice().sort((a, b) => getProgress(a) - getProgress(b))[0]];
-  const chosen = pool[Math.floor(Math.random() * pool.length)];
-  return letters.find(l => l.id === chosen.id);
 }
 
 const CLOUDS = [
@@ -73,24 +38,35 @@ const CLOUDS = [
 
 export default function BalloonGame() {
   const navigate = useNavigate();
-  const [letters,  setLetters]  = useState(() => pickSubset(LETTER_COUNT));
-  const [started,  setStarted]  = useState(false);
-  const [paused,   setPaused]   = useState(false);
-  const [gameOver, setGameOver] = useState(false);
-  const [balloons, setBalloons] = useState(() => {
-    const bw = getBalloonW(letters.length);
-    return initBalloons(letters, bw);
+
+  const [gameState] = useState(() => {
+    const bw = getBalloonW(LETTER_COUNT);
+    const subset = pickSubset(LETTER_COUNT);
+    const bs = initBalloons(subset, bw);
+    const tb = pickVisibleTarget(bs);
+    return { initialBalloons: bs, initialTarget: tb };
   });
-  const [target,   setTarget]   = useState(() => pickTarget(letters));
-  const [statuses, setStatuses] = useState({});
-  const [score,    setScore]    = useState(0);
-  const [timeLeft, setTimeLeft] = useState(GAME_DURATION);
-  const [roundId,  setRoundId]  = useState(0);
-  const [bursts,   setBursts]   = useState([]);
+
+  const [balloons,     setBalloons]     = useState(gameState.initialBalloons);
+  const [target,       setTarget]       = useState(() => ({
+    id: gameState.initialTarget.id,
+    letter: gameState.initialTarget.letter,
+    romanization: gameState.initialTarget.romanization,
+    color: gameState.initialTarget.color,
+  }));
+  const [usedLetterIds, setUsedLetterIds] = useState(() => new Set());
+  const [started,      setStarted]      = useState(false);
+  const [paused,       setPaused]       = useState(false);
+  const [gameOver,     setGameOver]     = useState(false);
+  const [statuses,     setStatuses]     = useState({});
+  const [score,        setScore]        = useState(0);
+  const [timeLeft,     setTimeLeft]     = useState(GAME_DURATION);
+  const [roundId,      setRoundId]      = useState(0);
+  const [bursts,       setBursts]       = useState([]);
 
   const balloonW = getBalloonW(LETTER_COUNT);
 
-  // Timer logic
+  // Timer
   useEffect(() => {
     if (!started || paused || gameOver) return;
     if (timeLeft <= 0) { setGameOver(true); return; }
@@ -100,8 +76,7 @@ export default function BalloonGame() {
 
   useEffect(() => { if (gameOver) stopAudio(); }, [gameOver]);
 
-  // Audio logic - plays any time a new round starts (correct answer or new letter set) after a 350 ms delay
-  // watches roundId mainly
+  // Audio — fires 350ms after each new round
   const speak = useCallback(() => playLetterAudio(target.letter), [target]);
   useEffect(() => {
     if (!started || paused || gameOver) return;
@@ -113,10 +88,11 @@ export default function BalloonGame() {
 
   function handlePlayAgain() {
     const newLetters = pickSubset(LETTER_COUNT);
-    const newBalloonW = getBalloonW(newLetters.length);
-    setLetters(newLetters);
-    setBalloons(initBalloons(newLetters, newBalloonW));
-    setTarget(pickTarget(newLetters));
+    const newBalloons = initBalloons(newLetters, balloonW);
+    const tb = pickVisibleTarget(newBalloons);
+    setBalloons(newBalloons);
+    setTarget({ id: tb.id, letter: tb.letter, romanization: tb.romanization, color: tb.color });
+    setUsedLetterIds(new Set());
     setStatuses({});
     setScore(0);
     setTimeLeft(GAME_DURATION);
@@ -128,55 +104,43 @@ export default function BalloonGame() {
 
   function handleBalloonClick(balloon, burstX, burstY) {
     if (statuses[balloon.uid] || gameOver || paused || !started) return;
+
     if (checkAnswer(balloon.id, target.id)) {
       setStatuses(s => ({ ...s, [balloon.uid]: 'correct' }));
       setScore(n => n + 1);
       playSuccessSound();
 
-      // Spawn fixed-position burst at click location
       const burstId = balloon.uid;
       setBursts(prev => [...prev, { id: burstId, x: burstX, y: burstY }]);
       setTimeout(() => setBursts(prev => prev.filter(b => b.id !== burstId)), 650);
 
       setTimeout(() => {
-        const remainingLetters = letters.filter(l => l.id !== balloon.id);
-        const remainingBalloons = balloons.filter(b => b.uid !== balloon.uid);
+        const newUsedIds = new Set(usedLetterIds);
+        newUsedIds.add(balloon.id);
 
-        if (remainingLetters.length === 0) {
-          // All popped — refresh with a brand new round
+        if (newUsedIds.size >= ALL_LETTERS.length) {
+          // All 50 letters cycled through — full reset (keep score & timer)
           const newLetters = pickSubset(LETTER_COUNT);
-          setLetters(newLetters);
-          setBalloons(initBalloons(newLetters, balloonW));
-          setTarget(pickTarget(newLetters));
+          const newBalloons = initBalloons(newLetters, balloonW);
+          const tb = pickVisibleTarget(newBalloons);
+          setBalloons(newBalloons);
+          setTarget({ id: tb.id, letter: tb.letter, romanization: tb.romanization, color: tb.color });
           setStatuses({});
-        } else if (remainingBalloons.length < 5) {
-          // Too few balloons — add fresh letters into the vacant lanes, leave remaining in place
-          const activeIds = new Set(remainingLetters.map(l => l.id));
-          const fresh = ALL_LETTERS
-            .filter(l => !activeIds.has(l.id))
-            .sort(() => Math.random() - 0.5)
-            .slice(0, 4);
-          const occupiedLanes = new Set(remainingBalloons.map(b => b.laneIndex));
-          const vacantLanes = Array.from({ length: LETTER_COUNT }, (_, i) => i)
-            .filter(i => !occupiedLanes.has(i))
-            .sort(() => Math.random() - 0.5);
-          const freshToAdd = fresh.slice(0, vacantLanes.length);
-          const newBalloons = freshToAdd.map((l, i) =>
-            createBalloon(l, vacantLanes[i], LETTER_COUNT, balloonW, 0.5)
-          );
-          const allLetters = [...remainingLetters, ...freshToAdd];
-          const allBalloons = [...remainingBalloons, ...newBalloons];
-          setLetters(allLetters);
-          setBalloons(allBalloons);
-          setStatuses(s => { const n = { ...s }; delete n[balloon.uid]; return n; });
-          setTarget(pickVisibleTarget(allLetters, allBalloons));
+          setUsedLetterIds(new Set());
         } else {
-          // Normal pop — remove balloon, pick next target from remaining
-          setBalloons(remainingBalloons);
+          // Replace popped slot in-place with a fresh letter
+          const activeIds = new Set(balloons.map(b => b.id));
+          const pool = ALL_LETTERS.filter(l => !activeIds.has(l.id));
+          const newLetter = pool[Math.floor(Math.random() * pool.length)];
+          const newBalloon = replaceBalloon(balloon, newLetter, balloonW, LETTER_COUNT);
+          const updatedBalloons = balloons.map(b => b.uid === balloon.uid ? newBalloon : b);
+          const tb = pickVisibleTarget(updatedBalloons);
+          setBalloons(updatedBalloons);
+          setTarget({ id: tb.id, letter: tb.letter, romanization: tb.romanization, color: tb.color });
           setStatuses(s => { const n = { ...s }; delete n[balloon.uid]; return n; });
-          setLetters(remainingLetters);
-          setTarget(pickVisibleTarget(remainingLetters, remainingBalloons));
+          setUsedLetterIds(newUsedIds);
         }
+
         setRoundId(n => n + 1);
       }, 500);
     } else {
@@ -250,7 +214,6 @@ export default function BalloonGame() {
         ))}
       </div>
 
-      {/* Burst confetti — position:fixed so parent transforms can't interfere */}
       {bursts.map(burst => (
         <div
           key={burst.id}

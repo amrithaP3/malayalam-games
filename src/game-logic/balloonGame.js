@@ -115,12 +115,67 @@ export const ALL_LETTERS = [
   { id: 'ha',   letter: 'ഹ',  romanization: 'ha',   type: 'consonant' },
 ].map((l, i) => ({ ...l, color: COLORS[i % COLORS.length] }))
 
+export const FIXED_DURATION = 12;
+
 export function pickSubset(n = 16) {
   return [...ALL_LETTERS].sort(() => Math.random() - 0.5).slice(0, n)
 }
 
-export function pickTarget(letters) {
-  return letters[Math.floor(Math.random() * letters.length)]
+export function createBalloon(letter, laneIndex, totalLanes, balloonW, progressOverride = 0) {
+  const laneW = 82 / totalLanes;
+  const laneStart = 6 + laneIndex * laneW;
+  const balloonWPct = (balloonW / window.innerWidth) * 100;
+  const offset = Math.max(laneW - balloonWPct - 0.5, 0);
+  return {
+    uid:       Math.random().toString(36).slice(2),
+    ...letter,
+    laneIndex,
+    left:      laneStart + Math.random() * offset,
+    duration:  FIXED_DURATION,
+    delay:     -(FIXED_DURATION * progressOverride),
+    startedAt: Date.now(),
+  };
+}
+
+export function initBalloons(letters, balloonW) {
+  const n = letters.length;
+  // Shuffle evenly-spaced progress values so initial positions are random, not diagonal
+  const progress = Array.from({ length: n }, (_, i) => i / n)
+    .sort(() => Math.random() - 0.5);
+  return letters.map((letter, i) => createBalloon(letter, i, n, balloonW, progress[i]));
+}
+
+export function replaceBalloon(oldBalloon, newLetter, balloonW, totalLanes) {
+  const laneW = 82 / totalLanes;
+  const laneStart = 6 + oldBalloon.laneIndex * laneW;
+  const balloonWPct = (balloonW / window.innerWidth) * 100;
+  const offset = Math.max(laneW - balloonWPct - 0.5, 0);
+  return {
+    uid:       Math.random().toString(36).slice(2),
+    ...newLetter,
+    laneIndex: oldBalloon.laneIndex,
+    left:      laneStart + Math.random() * offset,
+    duration:  FIXED_DURATION,
+    delay:     0,
+    startedAt: Date.now(),
+  };
+}
+
+export function pickVisibleTarget(balloons) {
+  const now = Date.now();
+  const getProgress = b => {
+    const elapsed = (now - b.startedAt) + Math.abs(b.delay) * 1000;
+    return (elapsed % (b.duration * 1000)) / (b.duration * 1000);
+  };
+  const inRange = balloons.filter(b => {
+    const p = getProgress(b);
+    return p >= 0.30 && p <= 0.65;
+  });
+  // Always pick the balloon closest to mid-screen (progress ~0.45) so target is immediately reachable
+  const pool = inRange.length > 0 ? inRange : balloons;
+  return pool.slice().sort((a, b) =>
+    Math.abs(getProgress(a) - 0.45) - Math.abs(getProgress(b) - 0.45)
+  )[0];
 }
 
 export function checkAnswer(balloonId, targetId) {
