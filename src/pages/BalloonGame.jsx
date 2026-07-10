@@ -11,6 +11,7 @@ import {
 
 const GAME_DURATION = 60;
 const LETTER_COUNT  = 8;
+const BALLOON_ONLY  = import.meta.env.VITE_BALLOON_ONLY === 'true';
 
 const BURST = [
   { color: '#FF6B6B', angle: 0   },
@@ -102,6 +103,15 @@ export default function BalloonGame() {
     setBursts([]);
   }
 
+  function handleExit() {
+    if (BALLOON_ONLY) {
+      handlePlayAgain();
+      setStarted(false);
+    } else {
+      navigate('/');
+    }
+  }
+
   function handleBalloonClick(balloon, burstX, burstY) {
     if (statuses[balloon.uid] || gameOver || paused || !started) return;
 
@@ -153,7 +163,7 @@ export default function BalloonGame() {
 
   if (!started) return <GameIntro onStart={handleStart} />;
   if (gameOver)  return (
-    <EndScreen score={score} onPlayAgain={handlePlayAgain} onExit={() => navigate('/')} />
+    <EndScreen score={score} onPlayAgain={handlePlayAgain} onExit={handleExit} />
   );
 
   const timerColor = timeLeft <= 5 ? '#e74c3c' : timeLeft <= 10 ? '#e67e22' : '#27ae60';
@@ -247,7 +257,7 @@ export default function BalloonGame() {
               <button className="pause-action-btn pause-action-btn--resume" onClick={() => setPaused(false)}>
                 ▶ Resume
               </button>
-              <button className="pause-action-btn pause-action-btn--exit" onClick={() => navigate('/')}>
+              <button className="pause-action-btn pause-action-btn--exit" onClick={handleExit}>
                 ← Exit to Home
               </button>
             </div>
