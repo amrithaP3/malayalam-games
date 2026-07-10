@@ -1,4 +1,5 @@
 import { BrowserRouter, Routes, Route } from 'react-router-dom';
+import { Analytics } from '@vercel/analytics/react';
 import { UserProvider } from './context/UserContext';
 import Home from './pages/Home';
 import GamesPortal from './pages/GamesPortal';
@@ -19,6 +20,7 @@ export default function App() {
           {!BALLOON_ONLY && <Route path="/games" element={<GamesPortal />} />}
           <Route path="/balloon" element={<BalloonGame />} />
         </Routes>
+        <Analytics />
       </BrowserRouter>
     </UserProvider>
   );
