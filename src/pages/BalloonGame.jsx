@@ -76,6 +76,10 @@ export default function BalloonGame() {
   }, [started, paused, gameOver, timeLeft]);
 
   useEffect(() => { if (gameOver) stopAudio(); }, [gameOver]);
+  useEffect(() => { if (paused) stopAudio(); }, [paused]);
+
+  // Stop audio on unmount (e.g. browser back button, not just in-app exit buttons)
+  useEffect(() => () => stopAudio(), []);
 
   // Audio — fires 350ms after each new round
   const speak = useCallback(() => playLetterAudio(target.letter), [target]);
@@ -104,6 +108,7 @@ export default function BalloonGame() {
   }
 
   function handleExit() {
+    stopAudio();
     if (BALLOON_ONLY) {
       handlePlayAgain();
       setStarted(false);
@@ -186,11 +191,6 @@ export default function BalloonGame() {
         </div>
       </header>
 
-      <div className="prompt-area">
-        <p className="prompt-text">Tap the balloon for the letter that matches the sound!</p>
-        <button className="speak-btn" onClick={speak}>🔊 Hear it again</button>
-      </div>
-
       <div
         className="balloon-field"
         data-paused={paused}
@@ -243,6 +243,11 @@ export default function BalloonGame() {
           ))}
         </div>
       ))}
+
+      <div className="prompt-area">
+        <p className="prompt-text">Tap the balloon for the letter that matches the sound!</p>
+        <button className="speak-btn" onClick={speak}>🔊 Hear it again</button>
+      </div>
 
       {paused && (
         <div className="pause-overlay">
